@@ -1,0 +1,177 @@
+<?xml version="1.0" encoding="utf-8"?>
+<androidx.constraintlayout.widget.ConstraintLayout
+    xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:app="http://schemas.android.com/apk/res-auto"
+    android:layout_width="match_parent"
+    android:layout_height="match_parent"
+    android:orientation="vertical"
+    android:clickable="true"
+    android:focusable="true"
+    android:elevation="2dp"
+    android:background="@color/white">
+
+    <TextView
+        android:id="@+id/header"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:minHeight="50dp"
+        android:textSize="25sp"
+        android:background="@color/purple_700"
+        android:textColor="@color/white"
+        android:gravity="center"
+        android:text="@string/payment_receipt"
+        app:layout_constraintEnd_toEndOf="parent"
+        app:layout_constraintStart_toStartOf="parent"
+        app:layout_constraintTop_toTopOf="parent" />
+
+    <LinearLayout
+        android:id="@+id/line1"
+        android:layout_width="match_parent"
+        android:layout_height="3dp"
+        android:background="@color/green"
+        android:orientation="vertical"
+        app:layout_constraintTop_toBottomOf="@id/header"
+        app:layout_constraintEnd_toEndOf="parent"
+        app:layout_constraintStart_toStartOf="parent">
+    </LinearLayout>
+
+    <LinearLayout
+        android:id="@+id/btnGrp"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:background="#3B3F59"
+        android:orientation="horizontal"
+        android:paddingTop="60dp"
+        android:paddingBottom="60dp"
+        android:paddingEnd="10dp"
+        android:paddingStart="10dp"
+        app:layout_constraintEnd_toEndOf="parent"
+        app:layout_constraintStart_toStartOf="parent"
+        app:layout_constraintTop_toBottomOf="@id/line1">
+
+        <Button
+            android:id="@+id/btnReceipt"
+            android:background="@drawable/btn"
+            android:layout_width="0dp"
+            android:layout_height="wrap_content"
+            android:layout_weight="0.5"
+            android:layout_gravity="center"
+            android:layout_marginEnd="5dp"
+            android:maxHeight="90dp"
+            android:minHeight="90dp"
+            android:gravity="center"
+            android:textStyle="bold"
+            android:textColor="@color/purple_700"
+            android:onClick="onClick"
+            android:clickable="true"
+            android:focusable="true"
+            android:textSize="18sp"
+            android:text="@string/print" />
+
+        <Button
+            android:id="@+id/btnQR"
+            android:background="@drawable/btn"
+            android:layout_width="0dp"
+            android:layout_height="wrap_content"
+            android:layout_weight="0.5"
+            android:layout_gravity="center"
+            android:maxHeight="90dp"
+            android:minHeight="90dp"
+            android:gravity="center"
+            android:textStyle="bold"
+            android:textColor="@color/purple_700"
+            android:onClick="onClick"
+            android:clickable="true"
+            android:focusable="true"
+            android:textSize="18sp"
+            android:text="@string/qr" />
+
+        <Button
+            android:id="@+id/btnMail"
+            android:background="@drawable/btn"
+            android:layout_width="0dp"
+            android:layout_height="wrap_content"
+            android:layout_weight="0.5"
+            android:layout_gravity="center"
+            android:layout_marginStart="5dp"
+            android:maxHeight="90dp"
+            android:minHeight="90dp"
+            android:gravity="center"
+            android:textStyle="bold"
+            android:textColor="@color/purple_700"
+            android:onClick="onClick"
+            android:clickable="true"
+            android:focusable="true"
+            android:textSize="18sp"
+            android:text="@string/mail" />
+
+        <Button
+            android:id="@+id/btnSMS"
+            android:background="@drawable/btn"
+            android:layout_width="0dp"
+            android:layout_height="wrap_content"
+            android:layout_weight="0.5"
+            android:layout_gravity="center"
+            android:layout_marginStart="5dp"
+            android:maxHeight="90dp"
+            android:minHeight="90dp"
+            android:gravity="center"
+            android:textStyle="bold"
+            android:textColor="@color/purple_700"
+            android:onClick="onClick"
+            android:clickable="true"
+            android:focusable="true"
+            android:textSize="18sp"
+            android:text="@string/sms" />
+    </LinearLayout>
+
+    <LinearLayout
+        android:id="@+id/line2"
+        android:layout_width="match_parent"
+        android:layout_height="3dp"
+        android:background="@color/green"
+        android:orientation="vertical"
+        app:layout_constraintTop_toBottomOf="@id/btnGrp"
+        app:layout_constraintEnd_toEndOf="parent"
+        app:layout_constraintStart_toStartOf="parent">
+    </LinearLayout>
+
+    <RelativeLayout
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:background="@color/white"
+        android:orientation="vertical"
+        app:layout_constraintTop_toBottomOf="@id/line2"
+        app:layout_constraintEnd_toEndOf="parent"
+        app:layout_constraintStart_toStartOf="parent">
+
+        <ScrollView
+            android:layout_width="match_parent"
+            android:layout_height="match_parent">
+            <TextView
+                android:id="@+id/prnStr"
+                android:layout_marginTop="20dp"
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:background="@color/white"
+                android:fontFamily="monospace"
+                android:scrollbars="vertical"
+                android:textSize="17sp"
+                android:textStyle="bold"
+                android:textAlignment="center"
+                android:singleLine="false"
+                app:layout_constraintStart_toStartOf="parent"
+                app:layout_constraintTop_toTopOf="parent">
+            </TextView>
+        </ScrollView>
+
+        <ImageView
+            android:id="@+id/qr"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:layout_marginTop="30dp"
+            android:layout_centerHorizontal="true">
+        </ImageView>
+
+    </RelativeLayout>
+</androidx.constraintlayout.widget.ConstraintLayout>

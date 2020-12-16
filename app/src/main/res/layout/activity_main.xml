@@ -1,0 +1,74 @@
+<?xml version="1.0" encoding="utf-8"?>
+<RelativeLayout
+    xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:tools="http://schemas.android.com/tools"
+    android:id="@+id/mainRoot"
+    android:layout_width="match_parent"
+    android:layout_height="match_parent"
+    android:background="@color/white"
+    tools:context=".activity.MainActivity">
+
+    <ImageView
+        android:id="@+id/logo"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:layout_marginStart="20dp"
+        android:layout_marginEnd="20dp"
+        android:layout_marginTop="20dp"
+        android:background="@drawable/logo2">
+    </ImageView>
+
+    <EditText
+        android:id="@+id/edtMerchId"
+        android:hint="@string/merchantId"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:layout_below="@id/logo"
+        android:maxLength="8"
+        android:textSize="22sp"
+        android:layout_marginTop="50dp"
+        android:layout_marginLeft="30dp"
+        android:layout_marginRight="30dp"
+        android:inputType="number" />
+
+    <EditText
+        android:id="@+id/edtTermId"
+        android:hint="@string/terminalId"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:layout_below="@+id/edtMerchId"
+        android:maxLength="8"
+        android:textSize="22sp"
+        android:layout_marginTop="30dp"
+        android:layout_marginLeft="30dp"
+        android:layout_marginRight="30dp"
+        android:inputType="number"/>
+
+    <EditText
+        android:id="@+id/edtPwd"
+        android:hint="@string/password"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:layout_below="@id/edtTermId"
+        android:maxLength="8"
+        android:textSize="22sp"
+        android:layout_marginTop="30dp"
+        android:layout_marginLeft="30dp"
+        android:layout_marginRight="30dp"
+        android:inputType="number"/>
+
+    <Button
+        android:id="@+id/btnLogin"
+        android:text="@string/login"
+        android:textSize="24sp"
+        android:onClick="onClick"
+        android:background="@drawable/btn"
+        android:layout_marginTop="30dp"
+        android:layout_marginLeft="30dp"
+        android:layout_marginRight="30dp"
+        android:layout_below="@+id/edtPwd"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content">
+    </Button>
+
+</RelativeLayout>
