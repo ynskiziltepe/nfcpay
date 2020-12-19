@@ -30,6 +30,7 @@
 #define PDOL_TAG 0x9F38
 #define CDOL1_TAG 0x8C
 #define CDOL2_TAG 0x8D
+#define MDOL_TAG 0x9F5C
 #define GPO_RMT1_TAG 0x80
 #define GPO_RMT2_TAG 0x77
 #define AFL_TAG 0x94

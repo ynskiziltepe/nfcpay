@@ -148,6 +148,7 @@ public class CardReadTask implements Runnable {
     @Override
     public void run() {
         byte[] aid = null; // AID (Application Identifier)
+        ArrayList<byte[]> aidList = null; // AID (Application Identifier) list
         byte[] appLabel = null; // Application Label
         byte[] pan = null; // Application PAN (Primary Account Number)
         byte[] cardholderName = null; // Cardholder Name
@@ -211,29 +212,9 @@ public class CardReadTask implements Runnable {
         }
 
 
-        // - ATS (Answer To Select)
-        // PSE (Payment System Environment)
-        byte[] rPse = null;
-        boolean pseSucceed = false;
-        byte[] cPse = APDUSend.getApduBytes(EMVConsts.SELECT, 0x0400,
-                EMVConsts.PSE.length(), EMVConsts.PSE.getBytes());
-
-        Log.d(TAG, "EMV - PSE Command:" + UtilHex.bytes2Hex(cPse));
-        rPse = sendReceive(cPse);
-
-        if (rPse != null) {
-            if (EMVNative.checkEMVResponse(rPse)) {
-                pseSucceed = true;
-                Log.d(TAG, "EMV - PSE Response Succeesful:" + UtilHex.bytes2Hex(rPse));
-            } else {
-                Log.w(TAG, "EMV - PSE Response Unsuccesful");
-            }
-        }
-
         // PPSE (Proximity Payment System Environment)
-        byte[] cPpse = null;
-        byte[] rPpse = null;
-        boolean ppseSucceed = false;
+        byte[] cPpse;
+        byte[] rPpse;
 
         cPpse = APDUSend.getApduBytes(EMVConsts.SELECT, 0x0400, EMVConsts.PPSE.length(), EMVConsts.PPSE.getBytes());
 
@@ -243,93 +224,84 @@ public class CardReadTask implements Runnable {
         if (rPpse != null) {
             Log.d(TAG, "EMV - PPSE Response:" + UtilHex.bytes2Hex(rPpse));
             if (EMVNative.checkEMVResponse(rPpse)) {
-                ppseSucceed = true;
                 Log.d(TAG, "EMV - PPSE Response Success:" + UtilHex.bytes2Hex(rPpse));
             } else {
-                Log.w(TAG, "EMV - PPSE Response Unsuccesful");
+                Log.w(TAG, "EMV - PPSE Response unsuccesful");
+                showPopup("Cant read card", "PPSE Response unsuccesful");
+                return;
             }
-        }
-
-        if (!pseSucceed && !ppseSucceed) {
-            showPopup("Cant read card", "PSE and PPSE not read");
+        } else{
+            showPopup("Cant read card", "PPSE not read");
             return;
         }
 
         if(context instanceof ReadCard)
             ((ReadCard) context).setLedColor(2, Color.GREEN);
 
-        // AID (Application Identifier)
-        if (pseSucceed) {
-            try {
-                aid = EMVNative.getTlvValue(rPse, EMVConsts.AID);
-            } catch (Exception e) {
-                Log.e(TAG, e.getMessage());
-                Log.e(TAG, e.toString());
-                e.printStackTrace();
-            }
+        try {
+            aidList = EMVNative.getAidList(rPpse);
+        } catch (Exception e) {
+            Log.e(TAG, e.getMessage());
+            Log.e(TAG, e.toString());
+            e.printStackTrace();
         }
 
-        if (aid == null && ppseSucceed) {
-            try {
-                aid = EMVNative.getTlvValue(rPpse, EMVConsts.AID);
-            } catch (Exception e) {
-                Log.e(TAG, e.getMessage());
-                Log.e(TAG, e.toString());
-                e.printStackTrace();
+        if (aidList != null) {
+            for(byte[] currrAid: aidList) {
+                Log.d(TAG, "EMV - AID:" + UtilHex.bytes2Hex(currrAid));
             }
-        }
-
-        if (aid != null) {
-                Log.d(TAG, "EMV - AID:" + UtilHex.bytes2Hex(aid));
         } else {
             showPopup("Cant read card", "AID not read");
             return;
         }
 
-        byte[] subAid = Arrays.copyOfRange(aid, 0, 7);
-        if (Arrays.equals(subAid, UtilAID.A0000000041010)) {
-            cFci = APDUSend.getApduBytes(EMVConsts.SELECT, 0x0400,
-                    UtilAID.A0000000041010.length, UtilAID.A0000000041010); // Mastercard (PayPass)
-            cardBrand = CardBrand.MASTER;
-            cardTech = CardTech.PAYPASS;
-            Log.d(TAG, "Found AID:" + Arrays.toString(aid));
-        } else if (Arrays.equals(subAid, UtilAID.A0000000043060)) {
-            cFci = APDUSend.getApduBytes(EMVConsts.SELECT, 0x0400,
-                    UtilAID.A0000000043060.length, UtilAID.A0000000043060); // Maestro (PayPass)
-            cardBrand = CardBrand.MAESTRO;
-            cardTech = CardTech.PAYPASS;
-            Log.d(TAG, "Found AID:" + Arrays.toString(aid));;
-        } else if (Arrays.equals(subAid, UtilAID.A0000000031010)) {
-            cFci = APDUSend.getApduBytes(EMVConsts.SELECT, 0x0400,
-                    UtilAID.A0000000031010.length, UtilAID.A0000000031010); // Visa (PayWave)
-            cardBrand = CardBrand.VISA;
-            cardTech = CardTech.PAYWAVE;
-            Log.d(TAG, "Found AID:" + Arrays.toString(aid));
-        } else if (Arrays.equals(subAid, UtilAID.A0000000032010)) {
-            cFci = APDUSend.getApduBytes(EMVConsts.SELECT, 0x0400,
-                    UtilAID.A0000000032010.length, UtilAID.A0000000032010); // Visa Electron (PayWave)
-            cardBrand = CardBrand.VISA_ELECTRON;
-            cardTech = CardTech.PAYWAVE;
-            Log.d(TAG, "Found AID:" + Arrays.toString(aid));
-        }
-
-        if (cFci != null) {
-            rFci = sendReceive(cFci);
-            Log.d(TAG, "EMV - FCI Command:" + UtilHex.bytes2Hex(cFci));
-        }
-
-        if (rFci != null) {
-            if (EMVNative.checkEMVResponse(rFci)) {
-                Log.d(TAG, "EMV - FCI Response Successful:" + UtilHex.bytes2Hex(rFci));
-            } else {
-                Log.d(TAG, "EMV - FCI Response Unsuccessful:");
-                showPopup("Cant read card", "FCI response is fail");
-                return;
+        for(byte[] currAid: aidList) {
+            byte[] subAid = Arrays.copyOfRange(currAid, 0, 7);
+            if (Arrays.equals(subAid, UtilAID.A0000000041010)) {
+                cFci = APDUSend.getApduBytes(EMVConsts.SELECT, 0x0400, currAid.length, currAid); // Mastercard (PayPass)
+                cardBrand = CardBrand.MASTER;
+                cardTech = CardTech.PAYPASS;
+                Log.d(TAG, "Found AID:" + Arrays.toString(currAid));
+            } else if (Arrays.equals(subAid, UtilAID.A0000000043060)) {
+                cFci = APDUSend.getApduBytes(EMVConsts.SELECT, 0x0400, currAid.length, currAid); // Maestro (PayPass)
+                cardBrand = CardBrand.MAESTRO;
+                cardTech = CardTech.PAYPASS;
+                Log.d(TAG, "Found AID:" + Arrays.toString(currAid));
+            } else if (Arrays.equals(subAid, UtilAID.A0000000031010)) {
+                cFci = APDUSend.getApduBytes(EMVConsts.SELECT, 0x0400,
+                        currAid.length, currAid); // Visa (PayWave)
+                cardBrand = CardBrand.VISA;
+                cardTech = CardTech.PAYWAVE;
+                Log.d(TAG, "Found AID:" + Arrays.toString(currAid));
+            } else if (Arrays.equals(subAid, UtilAID.A0000000032010)) {
+                cFci = APDUSend.getApduBytes(EMVConsts.SELECT, 0x0400,
+                        currAid.length, currAid); // Visa Electron (PayWave)
+                cardBrand = CardBrand.VISA_ELECTRON;
+                cardTech = CardTech.PAYWAVE;
+                Log.d(TAG, "Found AID:" + Arrays.toString(currAid));
             }
-        } else {
-            showPopup("Cant read card", "FCI not read");
+
+            if (cFci != null) {
+                rFci = sendReceive(cFci);
+                Log.d(TAG, "EMV - FCI Command:" + UtilHex.bytes2Hex(cFci));
+            }
+
+            if (rFci != null) {
+                if (EMVNative.checkEMVResponse(rFci)) {
+                    Log.d(TAG, "EMV - FCI Response Successful:" + UtilHex.bytes2Hex(rFci));
+                    aid = currAid;
+                    break;
+                }
+            }
+        }
+
+        // Application not selected.
+        if(null == aid) {
+            Log.d(TAG, "EMV - AID not selected");
+            showPopup("Card AID not selected", "FCI fail or FCI format error");
             return;
         }
+
         // - FCI (File Control Information)
         // Application Label (May be ASCII convertible)
         appLabel = EMVNative.getTlvValue(rFci, EMVConsts.APPLICATION_LABEL);
@@ -340,7 +312,8 @@ public class CardReadTask implements Runnable {
 
 
         // PDOL (Processing Options Data Object List)
-        byte[] pdol = null, tempPdol = EMVNative.getTlvValue(rFci, EMVConsts.PDOL);
+        byte[] pdol = null;
+        byte[] tempPdol = EMVNative.getTlvValue(rFci, EMVConsts.PDOL);
 
         if (tempPdol != null && EMVNative.checkDOL(tempPdol, EMVConsts.PDOL)) {
             pdol = tempPdol;
@@ -486,9 +459,6 @@ public class CardReadTask implements Runnable {
                             pan = EMVNative.getTlvValue(rReadRecord, EMVConsts.APPLICATION_PAN);
                             if (pan != null) {
                                 Log.d(TAG, "EMV - Application PAN" + UtilHex.bytes2Hex(pan));
-                            }else {
-                                showPopup("PAN is empty", "");
-                                return;
                             }
                         }
 
@@ -602,6 +572,10 @@ public class CardReadTask implements Runnable {
         if(context instanceof ReadCard)
             ((ReadCard) context).setLedColor(4, Color.GREEN);
 
+        if(null == pan){
+            showPopup("PAN is empty", "");
+            return;
+        }
 
         String panAscii = UtilHex.bytes2Hex(pan);
         String panMask = "******";

@@ -135,6 +135,9 @@ Java_com_yunus_nfcpay_EMVNative_checkDOL(JNIEnv *env, jclass clazz, jbyteArray j
                 if((1 == lenData) || (4 == lenData))
                                     retVal |= (boolean)TRUE;
                 break;
+            case MDOL_TAG:
+                retVal = TRUE;
+                break;
 
         }
     }

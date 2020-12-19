@@ -39,6 +39,7 @@ public class EMVNative {
     public static native byte[] getSW(byte [] data);
     public static native boolean checkEMVResponse(byte[] emvData);
     public static native byte[] getTlvValue(byte[] dataBytes, int emvTag);
+    public static native ArrayList<byte[]> getAidList(byte[] dataBytes);
     public static native boolean checkDOL(byte[] dol, int tag);
     public static native byte[] prepareDOL(byte[] dol, int dolTag);
     public static native ArrayList<AFL> getAFLDataRecords(byte[] aflData);

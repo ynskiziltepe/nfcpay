@@ -12,6 +12,7 @@
 #include <string.h>
 
 #include <stdlib.h>
+#include <util_emv_consts.h>
 
 #include "util_types.h"
 #include "util_jni.h"
@@ -24,7 +25,7 @@
 static JNIEnv *gJniEnv = NULL;
 /**------------------------------------ TAB PRIVATE FUNCTONS -------------------------------------*/
 /**-------------------------------------------------------------------------------------------------
-                                     getBit
+                                     @getBit
 - Brief  : Function to get bit value from byte value
 - Detail : Function will get bit value rom byte value
            There is 8 bit in a byte so max bit value should be 8
@@ -51,7 +52,7 @@ static int getBit(byte value, int bit)
     }
 }
 /**-------------------------------------------------------------------------------------------------
-                                     tlvFree
+                                     @tlvFree
 - Brief  : Function to free memory in array
 - Detail : Function will free memory in tlv array
 - Parameters \
@@ -82,7 +83,7 @@ static void tlvFree(jobject tlvArray)
     }
 }
 /**-------------------------------------------------------------------------------------------------
-                                     tlvParseOne
+                                     @tlvParseOne
 - Brief  : Function to parse first tlv item
 - Detail : Function will parse first Tag Len Value and return it
 - Parameters \
@@ -158,7 +159,7 @@ static jobject tlvParseOne(const byte *buf, int len)
     return tlvData;
 }
 /**-------------------------------------------------------------------------------------------------
-                                     tlvParseSubNodes
+                                     @tlvParseSubNodes
 - Brief  : Function to parse sub item
 - Detail : Function will parse sub item and it is will add to parent
 - Parameters \
@@ -219,7 +220,7 @@ static int tlvParseSubItem(jobject *parent)
     }
 }
 /**-------------------------------------------------------------------------------------------------
-                                     utlTlvParseSubItems
+                                     @utlTlvParseSubItems
 - Brief  : Function to parse all sub items
 - Detail : Function will parse all sub items and  will add to parent
 - Parameters \
@@ -263,10 +264,60 @@ static void utlTlvParseSubItems(jobject *parent)
         }
     }
 }
+/**-------------------------------------------------------------------------------------------------
+                       @getAidList
+- Brief  : Function to get AID list from EMV data
+- Detail : There are multi application in EMV cards.
+           Function will to get all AID (Application Identifier) from EMV data
+           null will return if AID not found in data
+- Parameters \
+ -- @env       : java environment
+ -- @clazz     : instance of java function
+ -- @tlvData   : structured EMV data
+ -- @aidList   : List of AID to fill
+- Returns  \
+--------------------------------------------------------------------------------------------------*/
+static void getAidList(jobject tlvData, jobject aidList)
+{
+    int i;
+    int tlvTag;
+    int subCount;
+    jclass clsTlv;
+    jclass clsList;
+    jobject subData;
+    jmethodID methodId;
+    jmethodID mAdd;
+    jbyteArray jAid;
 
+
+    clsTlv = (*gJniEnv)->FindClass(gJniEnv, "com/yunus/nfcpay/model/TLVData");
+    methodId = (*gJniEnv)->GetMethodID(gJniEnv, clsTlv, "getTag", "()I");
+    tlvTag = (*gJniEnv)->CallIntMethod(gJniEnv, tlvData, methodId);
+
+    clsList = (*gJniEnv)->FindClass(gJniEnv, "java/util/ArrayList");
+    mAdd = (*gJniEnv)->GetMethodID(gJniEnv, clsList, "add", "(Ljava/lang/Object;)Z");
+
+    if(tlvTag == AID_TAG)
+    {
+        methodId = (*gJniEnv)->GetMethodID(gJniEnv, clsTlv, "getValue", "()[B");
+        jAid = (*gJniEnv)->CallObjectMethod(gJniEnv, tlvData, methodId);
+        (*gJniEnv)->CallBooleanMethod(gJniEnv, aidList, mAdd, jAid);
+    }
+
+    methodId = (*gJniEnv)->GetMethodID(gJniEnv, clsTlv, "getSubCount", "()I");
+    subCount = (*gJniEnv)->CallIntMethod(gJniEnv, tlvData, methodId);
+
+    for(i = 0; i < subCount; i++)
+    {
+        methodId = (*gJniEnv)->GetMethodID(gJniEnv, clsTlv, "getSubData",
+                                    "(I)Lcom/yunus/nfcpay/model/TLVData;");
+        subData = (*gJniEnv)->CallObjectMethod(gJniEnv, tlvData, methodId, i);
+        getAidList(subData, aidList);
+    }
+}
 /**------------------------------------ TAB GLOBAL FUNCTIONS -------------------------------------*/
 /**-------------------------------------------------------------------------------------------------
-                                     utilTlvParse
+                                     @utilTlvParse
 - Brief  : Function to parse all tlv data
 - Detail : Function will parse all tlv data in raw buffer
            After parse Tlv construct will return
@@ -284,7 +335,7 @@ jobject utilTlvParse(byte *buf, int len)
     return tlvData;
 }
 /**-------------------------------------------------------------------------------------------------
-                                     utilTlvFind
+                                     @utilTlvFind
 - Brief  : Function to find related tag in tlv data
 - Detail : Function will find related tag in tlv data
            null will return if related tag not found
@@ -329,7 +380,7 @@ jobject utilTlvFind(jobject tlvData, int tag)
     return foundData;
 }
 /**-------------------------------------------------------------------------------------------------
-                       Java_com_yunus_nfcpay_EMVNative_getTlvValue
+                       @Java_com_yunus_nfcpay_EMVNative_getTlvValue
 - Brief  : Function to find related tag in tlv data
 - Detail : Function will find related tag in tlv data
            null will return if related tag not found
@@ -369,4 +420,34 @@ Java_com_yunus_nfcpay_EMVNative_getTlvValue(JNIEnv *env, jclass clazz,
 
     return jValue;
 }
+/**-------------------------------------------------------------------------------------------------
+                       @Java_com_yunus_nfcpay_EMVNative_getAidList
+- Brief  : Function to get AID list from EMV data
+- Detail : There are multi application in EMV cards.
+           Function will to get all AID (Application Identifier) from EMV data
+           null will return if AID not found in data
+- Parameters \
+ -- @env       : java environment
+ -- @clazz     : instance of java function
+ -- @dataBytes : raw tlv data array
+- Returns  \
+ -- @aidlList : Found AID list.
+--------------------------------------------------------------------------------------------------*/
+JNIEXPORT jobject JNICALL
+Java_com_yunus_nfcpay_EMVNative_getAidList(JNIEnv *env, jclass clazz, jbyteArray dataBytes) {
+    int dataLen;
+    byte emvData[MAX_EMV_LEN] = {0};
 
+    gJniEnv = env;
+
+    dataLen = utilJniJByteArrayToChar(env, dataBytes, emvData, MAX_EMV_LEN);
+    jobject allNodes = utilTlvParse(emvData, dataLen);
+
+    jclass clsList = (*env)->FindClass(env, "java/util/ArrayList");
+    jmethodID mArray = (*env)->GetMethodID(env, clsList, "<init>", "()V");
+    jobject aidlList = (*env)->NewObject(env, clsList, mArray);
+
+    getAidList(allNodes, aidlList);
+
+    return aidlList;
+}
