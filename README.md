@@ -1,5 +1,12 @@
 # nfcpay
 
+This application purpose is show JNI skills and coding techniques. So EMV operations wroted
+in C
+
+## Contact:
+ynskiziltepe@gmail.com
+
+
 ### Screenshots
 ![](/images/screenshot1.jpg)
 ![](/images/screenshot2.jpg)
