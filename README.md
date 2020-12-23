@@ -1,7 +1,10 @@
 # nfcpay
 
-This application purpose is show JNI skills and coding techniques. So EMV operations wroted
-in C
+The purpose of this application is to show the interaction of java and natural language. 
+Therefore, EMV transactions are written in C language. 
+Please contact me if there is any place in this application that you do not understand.  
+You can also contact us for new features and suggestions you want me to add.  
+With the wish to write beautiful software together.
 
 ## Contact:
 ynskiziltepe@gmail.com
